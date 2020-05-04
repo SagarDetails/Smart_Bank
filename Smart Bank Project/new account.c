@@ -9,7 +9,7 @@ int main()
     int choice;
     start:
     system("cls");
-    printf("====SMART BANK====");
+    printf("---SMART BANK---");
     printf("\n1. New account\n2. Transaction\n3. Update\n4. show_details\n5. exit");
     printf("\nEnter your choice: ");
     scanf("%d",&choice);
