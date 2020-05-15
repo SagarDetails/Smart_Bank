@@ -5,11 +5,10 @@
 
 int main()
 {
-
     int choice;
     start:
     system("cls");
-    printf("---SMART BANK---");
+    printf("===SMART BANK===");
     printf("\n1. New account\n2. Transaction\n3. Update\n4. show_details\n5. exit");
     printf("\nEnter your choice: ");
     scanf("%d",&choice);
@@ -84,7 +83,8 @@ void new_account()
     int choice,count=0,count1=0,count2=0,t=0;
     int end1=0,i,pn;
     long long int mb,ad;
-    char* a;
+    char a[10];
+    char name[10]="";
     char* extension = ".txt";
     add.account_no=temp;
     add.account_no++;
@@ -102,11 +102,6 @@ void new_account()
     scanf("%s",&add.name1.middle_name);
     printf("Last name=");
     scanf("%s",&add.name1.last_name);
-
-
-        a=add.name1.first_name;
-        char fileSpec[strlen(a)+strlen(extension)+1];
-
 
     printf("\n\nEnter father's name:");
     printf("\nFirst name=");
@@ -370,12 +365,35 @@ void new_account()
     }
 
     {
-        snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
-        pt = fopen( fileSpec, "a+" );
+        char nm[10];
+        int count=0;
+        //printf("\nSagar\n");
+        strcpy(name,add.name1.first_name);
+        while(1)
+        {
+            fseek(account_name,count,10);
+            if(fscanf(account_name,"%s",&nm)==EOF)
+                break;
+            if(strcmp(nm,name)==0)
+            {
+                strcat(name,"1");
+                printf("%s",name);
+            }
+            else
+            {
+                printf("\n%s---Sa",nm);
+            }
+            count+=strlen(nm);
+        }
+        fprintf(account_name,"%s\n",name);
     }
 
+    strcpy(a,name);
+    printf("\nram");
+    char fileSpec[strlen(a)+strlen(extension)+1];
     {
-        fprintf(account_name,"%s\n",add.name1.first_name);
+        snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+        pt = fopen( fileSpec, "a+" );
     }
 
     fscanf(lt_account,"%lld",&temp);
@@ -393,7 +411,7 @@ void new_account()
         fprintf(pt,"\n%s",add.account_type);
         fprintf(pt,"\n%d/%d/%d",add.dob.day,add.dob.month,add.dob.year);
         fprintf(pt,"\n%s",add.pan_card);
-        fprintf(pt,"000000");
+        fprintf(pt,"\n000000");
         fprintf(pt,"\n%d",add.initial_amount);
     }
 
