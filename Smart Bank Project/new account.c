@@ -81,10 +81,10 @@ void new_account()
     long long int temp,temp_ammount=0000000000;
     int age=0;
     int choice,count=0,count1=0,count2=0,t=0;
-    int end1=0,i,pn;
-    long long int mb,ad;
-    char a[10];
-    char name[10]="";
+    int end1=0,i,pn,tm;
+    long long int mb,ad,check_mobile_no;
+    char a[16],x;
+    char name[15]="";
     char* extension = ".txt";
     add.account_no=temp;
     add.account_no++;
@@ -95,9 +95,14 @@ void new_account()
     account_name=fopen("first_name.text","a+");
     lt_account=fopen("leatest_account.text","r");
 
-    printf("enter name of customer:");
+    printf("Enter name of customer:");
     printf("\nFirst name=");
     scanf("%s",&add.name1.first_name);
+    {
+        x=toupper(add.name1.first_name[0]);
+        add.name1.first_name[0]=x;
+    }
+    printf("\nFirst name: %s",add.name1.first_name);
     printf("Middle name=");
     scanf("%s",&add.name1.middle_name);
     printf("Last name=");
@@ -188,9 +193,11 @@ void new_account()
     printf("enter Nationality: ");
     fflush(stdin);
     scanf("%s",&add.nationality);
+
     {
-        m:
+        mbl:
         count=0;
+        fseek(account_name,0,0);
         printf("Enter Mobile No: ");
         scanf("%lld",&add.mobile_no);
         mb=add.mobile_no;
@@ -202,10 +209,38 @@ void new_account()
         if(count!=10)
         {
             printf("Invalid Mobile No!\n");
-            goto m;
+            goto mbl;
         }
+
+        {
+
+            m:
+            tm=fgets(a,15,account_name);
+            if(tm==NULL)
+            {
+                goto ed;
+            }
+            a[strlen(a)-1]='\0';
+            char fileSpec[strlen(a)+strlen(extension)+1];
+
+
+            snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+            pt = fopen( fileSpec, "r+" );
+
+            fscanf(pt,"%lld",&check_mobile_no);
+            if(add.mobile_no==check_mobile_no)
+            {
+                printf("This Mobile No already exist!...\n");
+                goto mbl;
+            }
+            else
+                goto m;
+
+        }
+
     }
 
+    ed:
     {
         e:
         printf("Enter Email ID: ");
@@ -248,7 +283,6 @@ void new_account()
 
     }
 
-
     {
         adr:
         count2=0;
@@ -270,7 +304,6 @@ void new_account()
 
     }
 
-
     if(age>=18)
     {
         pn:
@@ -285,7 +318,6 @@ void new_account()
 
         }
     }
-
 
     s:
     printf("\nEnter Marital status:");
@@ -369,33 +401,34 @@ void new_account()
         int count=0;
         //printf("\nSagar\n");
         strcpy(name,add.name1.first_name);
+        printf("\nName=%s",name);
         while(1)
         {
-            fseek(account_name,count,10);
+            fseek(account_name,count,0);
             if(fscanf(account_name,"%s",&nm)==EOF)
+            {
+                printf("\nBreak");
                 break;
+            }
+
+            //tolower(nm);
+            //tolower(name);
             if(strcmp(nm,name)==0)
             {
                 strcat(name,"1");
-                printf("%s",name);
-            }
-            else
-            {
-                printf("\n%s---Sa",nm);
             }
             count+=strlen(nm);
+            count+=2;
         }
         fprintf(account_name,"%s\n",name);
     }
 
-    strcpy(a,name);
-    printf("\nram");
-    char fileSpec[strlen(a)+strlen(extension)+1];
+    char fileSpec[strlen(name)+strlen(extension)+1];
     {
-        snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+        snprintf( fileSpec, sizeof( fileSpec ), "%s%s", name, extension );
         pt = fopen( fileSpec, "a+" );
     }
-
+    printf("\nAfter pt");
     fscanf(lt_account,"%lld",&temp);
 
     {
@@ -486,7 +519,7 @@ void transaction()
 
         if(pt==NULL)
         {
-            printf("pt is not open!");
+            printf("File is not open!");
             getch();
             return;
         }
@@ -501,7 +534,6 @@ void transaction()
             scanf("%lld",&account_number);
 
             {
-
                 ma:
                 tm=fgets(a,9,p);
                 if(tm==NULL)
@@ -518,7 +550,7 @@ void transaction()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -560,7 +592,7 @@ void transaction()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -724,7 +756,7 @@ void update()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -766,7 +798,7 @@ void update()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -927,7 +959,7 @@ void show_details()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -969,7 +1001,7 @@ void show_details()
 
                 if(pt==NULL)
                 {
-                    printf("pt is not open!");
+                    printf("File is not open!");
                     getch();
                     return;
                 }
@@ -1173,13 +1205,4 @@ void show_details()
     fclose(pt);
     fclose(p);
 }
-
-
-
-
-
-
-
-
-
 
