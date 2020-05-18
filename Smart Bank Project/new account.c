@@ -3,9 +3,11 @@
 #include<string.h>
 #include<windows.h>
 
+//Main Function
 int main()
 {
     int choice;
+    interest_rate();
     start:
     system("cls");
     printf("===SMART BANK===");
@@ -35,6 +37,134 @@ int main()
     return 0;
 }
 
+//Interest Rate Function
+void interest_rate()
+{
+    FILE *pt,*account_name,*date_file;
+    int tm,i,count;
+    float interest_ammount;
+    int day,month,year,months,total_months,years,total_years;
+    long long int exist_ammount,total_ammount;
+    char a[16],account_type[30];
+    char *extension=".txt";
+
+    //Open First Name file to put the account name of a particular user using their first name.
+    account_name=fopen("first_name.text","r");
+    date_file=fopen("interest_date.text","r");  //open Interest date file to get last date of putted interest
+
+    count=0;
+    fseek(date_file,count,0);
+    fscanf(date_file,"%d",&day);
+    count+=2;
+    fseek(date_file,count,0);
+    fscanf(date_file,"%d",&month);
+    count+=4;
+    fseek(date_file,count,0);
+    fscanf(date_file,"%d",&year);
+
+    //find the current time and date of the computer.
+    SYSTEMTIME time;
+    GetSystemTime(&time);
+
+    if(month>time.wMonth)
+        months=month-time.wMonth;
+    else
+        months=time.wMonth-month;
+
+    years=time.wYear-year;
+
+   // printf("\n%d %d %d",day,month,year);
+   // printf("\n%d  %d",months,years);
+    total_months=(12*years)+months;
+ //   printf("\nTotal Months: %d",total_months);
+
+    {
+
+            m:
+            tm=fgets(a,15,account_name);  //getting first name to access any account using using first name as a account's file name
+            if(tm==NULL)
+            {
+                goto ed;
+            }
+            a[strlen(a)-1]='\0';
+            char fileSpec[strlen(a)+strlen(extension)+1];
+
+            //concatinate first name with .txt to open any particular account
+            snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+            pt = fopen( fileSpec, "r+" );
+
+            for(i=10;i>=1;i--)
+            {
+                fseek(pt,-i,2);
+                fscanf(pt,"%lld",&exist_ammount);
+                if(exist_ammount!=0)
+                    break;
+            }
+
+            {
+                fseek(pt,0,0);
+                while(fgets(account_type,28,pt))
+                {
+                    account_type[strlen(account_type)-1]='\0';
+                    if(strcmp(account_type,"saving")==0)
+                        break;
+                    if(strcmp(account_type,"current")==0)
+                        break;
+                    if(strcmp(account_type,"fixed1")==0)
+                        break;
+                    if(strcmp(account_type,"fixed2")==0)
+                        break;
+                    if(strcmp(account_type,"fixed3")==0)
+                        break;
+                }
+                {
+                    if(strcmp(account_type,"saving")==0)
+                    {
+                        interest_ammount=exist_ammount*((float)2/100)/12*total_months;
+                        total_ammount=exist_ammount+interest_ammount;
+                        fseek(pt,0,2);
+                        fprintf(pt,"\n000000");
+                        fprintf(pt,"\n%lld",total_ammount);
+                    }
+                    if(strcmp(account_type,"fixed1")==0 || strcmp(account_type,"fixed2")==0 || strcmp(account_type,"fixed3")==0)
+                    {
+                        interest_ammount=exist_ammount*((float)1.2/100)/12*total_months;
+                        total_ammount=exist_ammount+interest_ammount;
+                        fseek(pt,0,2);
+                        fprintf(pt,"\n000000");
+                        fprintf(pt,"\n%lld",total_ammount);
+                    }
+                }
+            }
+            fclose(pt);  //closing file
+            goto m;
+        }
+        ed:
+        fclose(date_file);  //close interest date file
+
+        {
+            date_file=fopen("interest_date.text","w");  //again open interest date file
+            count=0;
+            fseek(date_file,count,0);
+            if(time.wDay<=9)// update interest date file with current date
+                fprintf(date_file,"0%d\n",time.wDay);
+            else
+                fprintf(date_file,"%d\n",time.wDay);
+
+            if(time.wMonth<=9)
+                fprintf(date_file,"0%d\n",time.wMonth);
+            else
+                fprintf(date_file,"%d\n",time.wMonth);
+
+            fprintf(date_file,"%d",time.wYear);
+        }
+
+        fclose(account_name);  //close first name file
+        fclose(date_file); //close interest date file
+        //fclose(pt);
+}
+
+//New Account Function...
 void new_account()
 {
     struct name
@@ -92,17 +222,18 @@ void new_account()
     GetSystemTime(&time);
     system("cls");
 
-    account_name=fopen("first_name.text","a+");
-    lt_account=fopen("leatest_account.text","r");
+    account_name=fopen("first_name.text","a+"); //open first name file to get the file name to any particular account
+    lt_account=fopen("leatest_account.text","r");  //open leatest account file to get the account number
 
+    //form now user have to enter their data
     printf("Enter name of customer:");
     printf("\nFirst name=");
     scanf("%s",&add.name1.first_name);
     {
+        //convert first latter of customer's fitst name into upper latter
         x=toupper(add.name1.first_name[0]);
         add.name1.first_name[0]=x;
     }
-    printf("\nFirst name: %s",add.name1.first_name);
     printf("Middle name=");
     scanf("%s",&add.name1.middle_name);
     printf("Last name=");
@@ -116,7 +247,7 @@ void new_account()
     printf("Last name=");
     scanf("%s",&add.name2.last_name);
 
-    printf("\n\nenter address:");
+    printf("\n\nEnter address:");
     printf("\nMain address=");
     scanf("%s",&add.local_address.main_address);
     printf("City=");
@@ -124,6 +255,7 @@ void new_account()
     printf("State=");
     scanf("%s",&add.local_address.state);
     {
+        //checking the either pin code is valid or not
         p:
             t=0;
         printf("Pin code=");
@@ -145,7 +277,7 @@ void new_account()
     printf("\n\nEnter gender:\n");
     printf("1. Male\n2. Female\n3. Other");
     start:
-    printf("\nenter your choice: ");
+    printf("\nEnter your choice: ");
     scanf("%d",&choice);
     switch(choice)
     {
@@ -167,13 +299,14 @@ void new_account()
     printf("\n\nEnter DOB DD/MM/YYYY:");
     scanf("%d/%d/%d",&add.dob.day,&add.dob.month,&add.dob.year);
     {
+        //checking DOB validation
         if(add.dob.day<1 || add.dob.day>31 || add.dob.month<1 || add.dob.month>12 || add.dob.year<1900 || add.dob.year>=time.wYear)
         {
             printf("Invalid DOB!\n");
             goto d;
         }
 
-        {
+        { //finding age using DOB and current date
             if(time.wDay>=add.dob.day && time.wMonth>=add.dob.month || time.wDay<add.dob.day && time.wMonth>add.dob.month)
             {
                 for(i=add.dob.year;i<time.wYear;i++)
@@ -190,11 +323,12 @@ void new_account()
             }
         }
     }
-    printf("enter Nationality: ");
+    printf("Enter Nationality: ");
     fflush(stdin);
     scanf("%s",&add.nationality);
 
     {
+        //checking mobile no validation
         mbl:
         count=0;
         fseek(account_name,0,0);
@@ -247,6 +381,7 @@ void new_account()
         scanf("%s",&add.mail_id);
 
         {
+            //Checking email id validation
             for(i=0;i<strlen(add.mail_id);i++)
             {
                 if(add.mail_id[i]=='@')
@@ -286,7 +421,7 @@ void new_account()
     {
         adr:
         count2=0;
-        printf("enter Adhar Card no: ");
+        printf("Enter Adhar Card no: ");
         scanf("%lld",&add.adhar_no);
         ad=add.adhar_no;
 
@@ -399,7 +534,6 @@ void new_account()
     {
         char nm[10];
         int count=0;
-        //printf("\nSagar\n");
         strcpy(name,add.name1.first_name);
         printf("\nName=%s",name);
         while(1)
@@ -407,12 +541,8 @@ void new_account()
             fseek(account_name,count,0);
             if(fscanf(account_name,"%s",&nm)==EOF)
             {
-                printf("\nBreak");
                 break;
             }
-
-            //tolower(nm);
-            //tolower(name);
             if(strcmp(nm,name)==0)
             {
                 strcat(name,"1");
@@ -428,10 +558,10 @@ void new_account()
         snprintf( fileSpec, sizeof( fileSpec ), "%s%s", name, extension );
         pt = fopen( fileSpec, "a+" );
     }
-    printf("\nAfter pt");
     fscanf(lt_account,"%lld",&temp);
 
     {
+        //Printing user's data into particular file
         fprintf(pt,"%lld %lld",add.mobile_no,temp);
         fprintf(pt,"\n%s",add.mail_id);
         fprintf(pt,"\n%s",add.marital_status);
@@ -457,7 +587,7 @@ void new_account()
 
     lt_account=fopen("leatest_account.text","w");
     temp++;
-    fprintf(lt_account,"%lld",temp);
+    fprintf(lt_account,"%lld",temp); //updating account number into file
 
     fclose(lt_account);
 
@@ -465,16 +595,9 @@ void new_account()
     printf("\n\n Your Account created successfully");
     getch();
 
-
-
-
-
-    printf("\n\nfirst name=%s\nmiddle name=%s\nlast name=%s",add.name1.first_name,add.name1.middle_name,add.name1.last_name);
-    printf("\naddress=%s",add.local_address.main_address);
-    printf("\nE-mail=%s",add.mail_id);
 }
 
-
+//Transaction Function
 void transaction()
 {
     int choice,set=0,i,tm,count=-20;
@@ -484,12 +607,12 @@ void transaction()
     char f_name[10];
     FILE *p,*pt;
 
-    char a[10];
-    char arr[10];
+    char a[16];
+    char arr[16];
     char* extension = ".txt";
     char fileSpec[strlen(a)+strlen(extension)+1];
 
-    p=fopen("first_name.text","r");
+    p=fopen("first_name.text","r"); //Open first file name to get file name
 
 
     printf("You open your account with:");
@@ -503,7 +626,7 @@ void transaction()
     {
 
             m:
-            tm=fgets(a,9,p);
+            tm=fgets(a,15,p);
             if(tm==NULL)
             {
                 printf("\nSorry Your Account is not Found!");
@@ -535,7 +658,7 @@ void transaction()
 
             {
                 ma:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                 if(tm==NULL)
                 {
                     printf("\nSorry Your Account is not Found!");
@@ -559,9 +682,9 @@ void transaction()
 
             fseek(pt,11,0);
 
-            fscanf(pt,"%lld",&faccount_number);
+            fscanf(pt,"%lld",&faccount_number); //getting user's account number from file
 
-            if(account_number!=faccount_number)
+            if(account_number!=faccount_number) //matching user's account no to entered account no
                 goto ma;
             else
             {
@@ -577,7 +700,7 @@ void transaction()
             {
 
                 mp:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                 if(tm==NULL)
                 {
                     printf("\nSorry Your Account is not Found!");
@@ -600,9 +723,9 @@ void transaction()
             }
 
             fseek(pt,0,0);
-            fscanf(pt,"%lld",&fphone_number);
+            fscanf(pt,"%lld",&fphone_number); //getting user's phone no
 
-            if(phone_number!=fphone_number)
+            if(phone_number!=fphone_number) //matching user's phone no to entered phone number
                 goto mp;
             else
             {
@@ -617,7 +740,7 @@ void transaction()
         }
     }
 
-    if(set==1)
+    if(set==1) //account or phone no matched with a account
     {
         printf("\nDo you want to Withdrawal or Deposit:");
         printf("\n1. Withdrawal\n2. Deposit");
@@ -640,7 +763,7 @@ void transaction()
                     if(exist_ammount!=0)
                         break;
                 }
-                if(exist_ammount<temp_ammount)
+                if(exist_ammount<temp_ammount) //checking exist amount with entered amount either it is less of grater
                 {
                     printf("\nInvalid Amount!");
                     goto amm;
@@ -659,7 +782,7 @@ void transaction()
                     exist_ammount=exist_ammount-temp_ammount;
                     fseek(pt,1,2);
                     fprintf(pt,"\n000000");
-                    fprintf(pt,"\n%lld",exist_ammount);
+                    fprintf(pt,"\n%lld",exist_ammount); //updating amount into file
                     printf("Withdrawal Successfully");
                     printf("\nAvailable Amount: %lld",exist_ammount);
                     getch();
@@ -708,6 +831,7 @@ void transaction()
 
 }
 
+//Update Function
 void update()
 {
     FILE *p,*pt;
@@ -717,7 +841,7 @@ void update()
     long long int old_phone,new_phone,exist_phone;
     char old_email[25],temp_email[40],new_email[25],exist_email[25],t_email[25];
     char new_marital[10],new_pan[15];
-    char a[10];
+    char a[16];
     char arr[10];
     char* extension = ".txt";
 
@@ -740,7 +864,7 @@ void update()
              {
 
                 ma:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                 if(tm==NULL)
                 {
                     printf("\nSorry Your Account is not Found!");
@@ -782,7 +906,7 @@ void update()
              {
 
                 mp:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                 if(tm==NULL)
                 {
                     printf("\nSorry Your Account is not Found!");
@@ -794,6 +918,7 @@ void update()
 
 
                 snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+                printf("\n%s->me",fileSpec);
                 pt = fopen( fileSpec, "r+" );
 
                 if(pt==NULL)
@@ -837,10 +962,10 @@ void update()
                 printf("Enter Old Mobile No: ");
                 scanf("%lld",&old_phone);
                 fseek(pt,0,0);
-                fscanf(pt,"%lld",&exist_phone);
+                fscanf(pt,"%lld",&exist_phone); //getting exist phone number
                 printf("%lld",exist_phone);
 
-                if(old_phone!=exist_phone)
+                if(old_phone!=exist_phone) //matching old phone number with entered phone number
                 {
                     printf("\nInvalid Mobile No!");
                     getch();
@@ -867,7 +992,7 @@ void update()
                     }
 
                     fseek(pt,0,0);
-                    fprintf(pt,"%lld",new_phone);
+                    fprintf(pt,"%lld",new_phone); //updating phone number
                     printf("\nMobile Number Update Successfully");
                     getch();
                     break;
@@ -890,7 +1015,7 @@ void update()
                         strcat(new_marital,"  ");
                     }
                     fseek(pt,count,0);
-                    fprintf(pt,"\n%s",new_marital);
+                    fprintf(pt,"\n%s",new_marital); //updating marital status
                     printf("\nMarital Status Update Successfully");
                     break;
                 }
@@ -907,11 +1032,11 @@ void update()
     fclose(p);
 }
 
-
+//Show Details Function
 void show_details()
 {
     FILE *p,*pt;
-    char a[10];
+    char a[16];
     char arr[10];
     char* extension = ".txt";
     int choice,tm,set=0,count=0,t,i;
@@ -943,7 +1068,7 @@ void show_details()
 
              {
                 ma:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                     if(tm==NULL)
                     {
                         printf("\nSorry Your Account is not Found!");
@@ -955,6 +1080,7 @@ void show_details()
 
 
                 snprintf( fileSpec, sizeof( fileSpec ), "%s%s", a, extension );
+                printf("\n%s->me",fileSpec);
                 pt = fopen( fileSpec, "r+" );
 
                 if(pt==NULL)
@@ -985,7 +1111,7 @@ void show_details()
             scanf("%lld",&phone);
             {
                 mp:
-                tm=fgets(a,9,p);
+                tm=fgets(a,15,p);
                     if(tm==NULL)
                     {
                         printf("\nSorry Your Account is not Found!");
@@ -1105,8 +1231,9 @@ void show_details()
 
         */
 
-        if(set==1)
-        {
+
+        if(set==1) //matched account or phone number
+        { //Getting user's details from file
             fseek(pt,0,0);
             fscanf(pt,"%lld",&phone_no);
             fseek(pt,11,0);
@@ -1114,7 +1241,6 @@ void show_details()
             fseek(pt,22,0);
             fscanf(pt,"%s",&email);
 
-            printf("\nEmail: %s",email);
             count=strlen(email);
             //count+=temail_size;
             count=count+24;
@@ -1186,13 +1312,14 @@ void show_details()
                     break;
             }
 
+            //Printing user's details on output screen
+            printf("\nFirst Name: %s %s %s",c_fname,c_mname,c_lname);
+            printf("\nFather Name: %s %s %s",f_fname,f_mname,f_lname);
+            printf("\nMain Address: %s %s %s %lld",main_address,city,state,pin_code);
             printf("\nPhone no: %lld",phone_no);
             printf("\nAccount no: %lld",account_no);
             printf("\nEmail id: %s",email);
             printf("\nMerital: %s",merital);
-            printf("\nFirst Name: %s %s %s",c_fname,c_mname,c_lname);
-            printf("\nFather Name: %s %s %s",f_fname,f_mname,f_lname);
-            printf("\nMain Address: %s %s %s %lld",main_address,city,state,pin_code);
             printf("\nGemder: %s",gender);
             printf("\nNationality: %s",nationality);
             printf("\nAdhar No: %lld",adhar_no);
@@ -1202,7 +1329,7 @@ void show_details()
 
             getch();
         }
-    fclose(pt);
-    fclose(p);
+    fclose(pt); //close user's account file
+    fclose(p); //close first name file
 }
 
